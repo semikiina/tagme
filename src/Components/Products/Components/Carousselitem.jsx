@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import {Card, CardActions, CardContent, Checkbox, Button, Typography, Stack, Box, ListItemText, FormControlLabel, } from '@mui/material';
+import {Card, CardActions, CardContent, Checkbox, Button, Typography, Stack, Box, ListItemText, FormControlLabel, Grid, ListItem, } from '@mui/material';
 import {FavoriteBorder, Favorite} from '@mui/icons-material';
 import useAuth from '../../Contexts/useAuth';
 import AddToCartDialog from './AddToCartDialog';
 
 
 const Carousselitem = ({product, newFav, onAddToCart}) => {
+   
 
-    
     const [src, setSrc] = useState({});
 
     const {user} = useAuth();
@@ -24,29 +24,34 @@ const Carousselitem = ({product, newFav, onAddToCart}) => {
 
     const HandleHovers = () =>{
         if(src.image == 0) {
-            if(product.images[1])
-            setSrc({src:"https://tagmeapi.herokuapp.com/" + product.images[1], image : 1})
+            if(product?.images[1])
+            setSrc({src:"http://localhost:8090/" + product.images[1], image : 1})
         }
         else {
-            if(product.images[1]) setSrc({src:"https://tagmeapi.herokuapp.com/" + product.images[0], image : 0})
+            if(product?.images[1]) setSrc({src:"http://localhost:8090/" + product.images[0], image : 0})
         }  
+    }
+
+    const handleFavoriteClick = () => {
+        if(user._id) newFav(product._id)
+        else window.location.href= "../login"
     }
 
     useEffect(()=>{
         if(product) {
-            setSrc({src:"https://tagmeapi.herokuapp.com/" + product.images[0], image : 0})
+            setSrc({src:"http://localhost:8090/" + product.images[0], image : 0})
         }
     },[product])
 
     if(!product) return null;
     return (
         <>
-            <Box padding={1}>
+            <Box padding={1} >
                 <Card > 
                     <Button href={'../products/'+ product._id} padding={0} >
                         <img 
                         src={src.src}
-                        style={{objectFit:'cover',width: 260,height: 260}}
+                        style={{objectFit:'cover',width: 255,height: 255}}
                         alt={product.title} 
                         onMouseOver={HandleHovers}
                         onMouseOut={HandleHovers} 
@@ -54,12 +59,18 @@ const Carousselitem = ({product, newFav, onAddToCart}) => {
                     </Button>
                     
                     <CardContent>
-                        <ListItemText primary={product.title} secondary={product.category} />
-                        <Stack direction="row" justifyContent="space-between" marginTop={2}>
-                            <Typography  variant="subtitle1" component="div">
-                                {product.basePrice} € 
-                            </Typography>
-                            
+                        <Stack direction="row" justifyContent={'space-between'}>
+                            <ListItemText 
+                                primary={product.title} 
+                                secondary={product.category} 
+                            />
+                        </Stack>
+                        
+                        <Stack direction="row" justifyContent="space-between" >
+                            <ListItemText 
+                                primary={`${product.basePrice}€ `}
+                                secondary={`+${product.shipping.toFixed(2)}€`}
+                            />
                            { product.favorite && 
                                 <FormControlLabel 
                                     control={
@@ -67,7 +78,7 @@ const Carousselitem = ({product, newFav, onAddToCart}) => {
                                             icon={<FavoriteBorder />} 
                                             checkedIcon={<Favorite sx={{ color : 'black'}}/>} 
                                             checked={product.favorite?.includes(user._id)} 
-                                            onChange={()=>{newFav(product._id)}}
+                                            onChange={()=>{ handleFavoriteClick() }}
                                             
                                         />}
                                     labelPlacement="start"
@@ -77,7 +88,12 @@ const Carousselitem = ({product, newFav, onAddToCart}) => {
                         </Stack>
                     </CardContent>
                     <CardActions>
-                            <Button size="large" variant="outlined" color="secondary" fullWidth onClick={()=> handleClickOpen(product._id)}>Add to Cart</Button>          
+                        {
+                            user._id 
+                            ? <Button variant="contained" color="secondary"  fullWidth onClick={()=> handleClickOpen(product._id)} >Add to Cart</Button>
+                            : <Button variant="contained" color="secondary" fullWidth href="../login">Login</Button>
+                        }
+                                 
                     </CardActions>
                 </Card>
             </Box>

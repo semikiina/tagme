@@ -10,8 +10,7 @@ const CarousselitemStores = ({store}) => {
                     <CardHeader  
                         sx={{ padding: 1}}
                         title={store.store_name}
-                        subheader={ '100 followers'}
-                        avatar={ <Avatar variant="square" src={'https://tagmeapi.herokuapp.com/'+store.store_image} /> }
+                        avatar={ <Avatar variant="square" src={'http://localhost:8090/'+store.store_image} /> }
                         />
                 </ListItemButton>
                 
@@ -22,7 +21,7 @@ const CarousselitemStores = ({store}) => {
                             ?   store.product.map((product) =>{
                                     return <Grid item sm={12} md={6} key={product._id}>
                                         <IconButton disableRipple onClick={() => window.location.href="../products/"+product._id}>
-                                            <Avatar  sx={{width : 100 , height : 100}}  variant="square" src={'https://tagmeapi.herokuapp.com/'+ product.images[0]}/>
+                                            <Avatar  sx={{width : 100 , height : 100}}  variant="square" src={'http://localhost:8090/'+ product.images[0]}/>
                                         </IconButton>
                                     </Grid>
                                 })

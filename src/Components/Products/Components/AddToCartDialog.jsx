@@ -14,42 +14,38 @@ const AddToCartDialog = ({open, handleClose, product, onAddToCart}) => {
 
     const [skuid, setSkuid] = useState("");
 
-    const [currentProductPrice, setCurrentProductPrice] = useState(1);
+    const [currentVariantPrices, setCurrentVariantPrices] = useState(1);
+
+    const [cartQuantity, setCartQuantity] = useState(0);
 
     const GetCombination = (val,index)=>{
 
+        setPrQuantity(1);
+
         let newArr = [...currentComb]; 
         newArr[index] = val; 
-
         setCurrentComb(newArr);
-
     }
-
-    const [cartQuantity, setCartQuantity] = useState(0);
 
     useEffect(()=>{
        
         setCartQuantity(0)
+        var result=null;
         if(skuid){
-            console.log('ola')
-            var result = user.cart?.items?.filter(obj => {
-                console.log(obj)
-                return obj.skuid === skuid
-            })
-            if(result.length) setCartQuantity(result[0]?.quantity)
+
+            var result = user.cart?.items?.find(obj =>  obj.skuid === skuid)
+            if(result) setCartQuantity(result.quantity)
             else ( setCartQuantity(0))
         }
         else{
-            var result = user.cart?.items?.filter(obj => {
-                console.log(obj)
-                return obj.product_id._id === product._id
-            })
-            if(result?.length) setCartQuantity(result[0]?.quantity)
+            var result = user.cart?.items?.find(obj =>obj.product_id._id === product._id)
+
+            if(result) setCartQuantity(result.quantity)
             else ( setCartQuantity(0))
         }
       
         
-    },[skuid,product])
+    },[skuid,product, user])
 
     useEffect(()=>{
 
@@ -69,10 +65,31 @@ const AddToCartDialog = ({open, handleClose, product, onAddToCart}) => {
         
         if(result) {
 
-            setCurrentProductPrice(result[0])
+            setCurrentVariantPrices(result[0])
         }
         
-    },[currentComb])
+    },[currentComb, user])
+
+    useEffect(()=>{
+        
+        if(product.variants){
+
+            var getVal = [];
+            if(product.variants.options.length)
+            { 
+                product.variants.options.forEach((opt, index)=>{
+                    
+                    getVal.push(opt.values[0])
+                })
+            }
+            else{
+                getVal.push("default")
+            }
+
+            setCurrentComb(getVal)
+
+        }
+    },[product])
 
     return (
         <Dialog open={open == product._id} onClose={handleClose}  fullWidth={true} maxWidth={'sm'}>
@@ -90,7 +107,7 @@ const AddToCartDialog = ({open, handleClose, product, onAddToCart}) => {
                     <Box padding={2}>
                         <Stack  spacing={2} alignItems={'center'}>
                             <img 
-                                src={'https://tagmeapi.herokuapp.com/'+product.images[0]}
+                                src={'http://localhost:8090/'+product.images[0]}
                                 style={{objectFit:'cover',maxWidth: 350,maxHeight: 350 }}
                                 alt={product.title} 
                             />
@@ -99,58 +116,39 @@ const AddToCartDialog = ({open, handleClose, product, onAddToCart}) => {
                                     <ListItem disablePadding>
                                         <ListItemText primary={product.title} secondary={product.category}/>
                                     </ListItem>
-                                    <Typography variant="h6">{currentProductPrice?.originalPrice || product.basePrice?.toFixed(2)}€</Typography>
+                                    <ListItemText primary={currentVariantPrices?.originalPrice+"€"} secondary={"+" + product.shipping +"€"}/>
                                 </Stack>
-                                
-                               { product.variants.length ?
-                                   <>
-                                        <Box marginBottom={2}>
-                                            {
-                                                product.variants?.options?.map((item,index)=>{
-                                                    return (
-                                                        <div key={index}>
-                                                            <Typography padding={1}>{item.name}</Typography>
-                                                            {
-                                                                item.values.map((val,ii) =>{
-                                                                    
-                                                                    return <Chip color="primary" label={val} key={ii} variant={ currentComb[index] == val ? "contained" : "outlined"} onClick={() => GetCombination(val, index)} />
-                                                                })
-                                                            }
-                                                        </div>
-                                                    )
-                                                })
-                                            }
-                                        </Box>
-                                        <Stack direction="row" spacing={2} marginTop={1} alignItems={'center'}>
-                                        { 
-                                            (currentProductPrice?.availableQuantity > 0 && cartQuantity < currentProductPrice?.availableQuantity)
-                                            ?    <>
-                                                <ButtonGroup  disableElevation >
-                                                    <Button variant="contained" color="info" disabled={prQuantity>1 ? false : true } onClick={()=>setPrQuantity(prQuantity-1)}>-</Button>
-                                                    <Button disabled>{prQuantity}</Button>
-                                                    <Button variant="contained" color="info" disabled={prQuantity < currentProductPrice.availableQuantity ? false : true} onClick={()=>setPrQuantity(prQuantity+1)} >+</Button>
-                                                </ButtonGroup>
-                                                <Button variant="outlined" color="secondary" fullWidth onClick={()=> {onAddToCart(product._id,prQuantity, skuid);handleClose() }}>Add to cart</Button>
-                                                </>
-                                            : <Button disabled variant="contained" color="secondary" fullWidth>This product is sould out.</Button>
-                                        }
-                                        </Stack>
-                                    </>
-                                    :  <Stack direction="row" spacing={2} marginTop={1} alignItems={'center'}>
-                                    { 
-                                        (product?.stock > 0 && cartQuantity < product?.stock)
-                                        ?    <>
-                                            <ButtonGroup  disableElevation >
-                                                <Button variant="contained" color="info" disabled={prQuantity>1 ? false : true } onClick={()=>setPrQuantity(prQuantity-1)}>-</Button>
-                                                <Button disabled>{prQuantity}</Button>
-                                                <Button variant="contained" color="info" disabled={prQuantity < product?.stock ? false : true} onClick={()=>setPrQuantity(prQuantity+1)} >+</Button>
-                                            </ButtonGroup>
-                                            <Button variant="outlined" color="secondary" fullWidth onClick={()=> {onAddToCart(product._id,prQuantity, "default");handleClose() }}>Add to cart</Button>
-                                            </>
-                                        : <Button disabled variant="contained" color="secondary" fullWidth>This product is sould out.</Button>
+                                <Box marginBottom={2}>
+                                    {
+                                        product.variants?.options?.map((item,index)=>{
+                                            return (
+                                                <div key={index}>
+                                                    <Typography padding={1}>{item.name}</Typography>
+                                                    {
+                                                        item.values.map((val,ii) =>{
+                                                            
+                                                            return <Chip color="primary" label={val} key={ii} variant={ currentComb[index] == val ? "contained" : "outlined"} onClick={() => GetCombination(val, index)} />
+                                                        })
+                                                    }
+                                                </div>
+                                            )
+                                        })
                                     }
-                                    </Stack>
+                                </Box>
+                                <Stack direction="row" spacing={2} marginTop={1} alignItems={'center'}>
+                                { 
+                                    (currentVariantPrices?.availableQuantity > 0 && cartQuantity < currentVariantPrices?.availableQuantity )
+                                    ?    <>
+                                        <ButtonGroup  disableElevation >
+                                            <Button variant="contained" color="secondary" disabled={prQuantity>1 ? false : true } onClick={()=>setPrQuantity(prQuantity-1)}>-</Button>
+                                            <Button disabled>{prQuantity}</Button>
+                                            <Button variant="contained" color="secondary" disabled={prQuantity < (currentVariantPrices.availableQuantity  - cartQuantity) ? false : true} onClick={()=>setPrQuantity(prQuantity+1)} >+</Button>
+                                        </ButtonGroup>
+                                        <Button variant="contained" color="secondary" fullWidth onClick={()=> {onAddToCart(product._id,prQuantity, skuid); setPrQuantity(1); handleClose(); }}>Add to cart</Button>
+                                        </>
+                                    : <Button disabled variant="contained" color="secondary" fullWidth>This product can't be added.</Button>
                                 }
+                                </Stack>
                             </Box>
                             
                         </Stack>

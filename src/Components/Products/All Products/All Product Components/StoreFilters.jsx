@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import {Typography, Stack, Select, MenuItem, FormControl, InputLabel, Button, Checkbox, Slider, Autocomplete, TextField} from '@mui/material';
 import { CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
 
-const Filters = ({SortProducts, handleProductFilters , categorys, order , priceRange, setProducts, defProducts}) => {
+const StoreFilters = ({SortProducts, handleProductFilters , categorys, order , priceRange}) => {
 
     const [filterCategory, setFilterCategory] = useState([]);
 
@@ -23,7 +23,6 @@ const Filters = ({SortProducts, handleProductFilters , categorys, order , priceR
     const handleProductFilterClear = () => {
         setFilterCategory([])
         setValue([priceRange[0], priceRange[1]])
-        setProducts(defProducts)
     }
 
 
@@ -87,4 +86,4 @@ const Filters = ({SortProducts, handleProductFilters , categorys, order , priceR
     )
 }
 
-export default Filters
+export default StoreFilters
